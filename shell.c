@@ -318,17 +318,34 @@ int runCommand(struct job newJob, struct jobSet * jobList,
             printf("failed to change current directory: %s\n",
                     strerror(errno));
         return 0;
-    } else if (!strcmp(newJob.progs[0].argv[0], "jobs")) {
-        // FILL IN HERE
-        // Scan the job list and print jobs' status
-	// using the following function 
-        //    printf(JOB_STATUS_FORMAT, job->jobId, statusString,
-        //            job->text);
- 	// while statusString is one of the {Stopped, Running}
+    } else if (!strcmp(newJob.progs[0].argv[0], "jobs"))
+    {
+    	// Scan the job list and print jobs' status
+    	for (job = jobList->head; job; job = job->next)
+    	{
+    		int i;
 
+			// Is it a stopped program?
+			if (job->numProgs == job->stoppedProgs)
+			{
+				statusString = "Stopped";
+			}
+			else
+			{
+				statusString = "Running";
+			}
+
+			/* Print the job's status */
+			printf(JOB_STATUS_FORMAT,
+				   job->jobId,
+				   statusString,
+				   job->text);
+    	}
         return 0;
-    } else if (!strcmp(newJob.progs[0].argv[0], "fg") ||
-               !strcmp(newJob.progs[0].argv[0], "bg")) {
+    }
+    else if (!strcmp(newJob.progs[0].argv[0], "fg") ||
+		     !strcmp(newJob.progs[0].argv[0], "bg"))
+    {
  
          // FILL IN HERE
 	// First of all do some syntax checking. 
