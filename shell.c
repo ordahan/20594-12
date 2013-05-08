@@ -323,8 +323,6 @@ int runCommand(struct job newJob, struct jobSet * jobList,
     	// Scan the job list and print jobs' status
     	for (job = jobList->head; job; job = job->next)
     	{
-    		int i;
-
 			// Is it a stopped program?
 			if (job->numProgs == job->stoppedProgs)
 			{
@@ -346,20 +344,50 @@ int runCommand(struct job newJob, struct jobSet * jobList,
     else if (!strcmp(newJob.progs[0].argv[0], "fg") ||
 		     !strcmp(newJob.progs[0].argv[0], "bg"))
     {
- 
-         // FILL IN HERE
-	// First of all do some syntax checking. 
-	// If the syntax check fails return 1
-	// else find the job in the job list 
-  	// If job not found return 1
-	// If strcmp(newJob.progs[0].argv[0] == "f"
-	// then put the job you found in the foreground (use tcsetpgrp)
-	// Don't forget to update the fg field in jobList
-	// In any case restart the processes in the job by calling 
-	// kill(-job->pgrp, SIGCONT). Don't forget to set isStopped = 0   
-	// in every proicess and stoppedProgs = 0 in the job
+    	int job_id;
 
-        return 0;
+    	// Assert exactly one extra parameter entered
+    	if (newJob.progs[0].argv[1] == 0 ||
+    		newJob.progs[0].argv[2] != 0)
+    		return 1;
+
+    	// Parameter must start with '%'
+    	if ((newJob.progs[0].argv[1])[0] != '%')
+    		return 1;
+
+    	// Retrieve job id from parameter
+    	job_id = atoi(newJob.progs[0].argv[1] + 1);
+
+    	// Find the requested job
+    	for (job = jobList->head; job; job = job->next)
+    	{
+    		// Job found
+    		if (job->jobId == job_id)
+    		{
+    			// If strcmp(newJob.progs[0].argv[0] == "f"
+				// then put the job you found in the foreground (use tcsetpgrp)
+				// Don't forget to update the fg field in jobList
+    			if (newJob.progs[0].argv[0][0] == 'f')
+    			{
+//    				if (tcsetpgrp(0, getpid()))
+//    				                        perror("tcsetpgrp");
+    			}
+
+    			// Resume running the job
+    			if (kill(-job->pgrp, SIGCONT))
+    				perror("cannot continue job with 'kill'");
+
+				// All programs running resumed
+    			job->stoppedProgs = 0;
+    			for (i = 0; i < job->numProgs; i++)
+    			{
+    				job->progs[i].isStopped = 0;
+    			}
+			}
+		}
+
+    	// Job not found on the list...
+        return 1;
     }
 
     nextin = 0, nextout = 1;
