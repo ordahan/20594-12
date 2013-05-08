@@ -364,13 +364,15 @@ int runCommand(struct job newJob, struct jobSet * jobList,
     		// Job found
     		if (job->jobId == job_id)
     		{
-    			// If strcmp(newJob.progs[0].argv[0] == "f"
-				// then put the job you found in the foreground (use tcsetpgrp)
-				// Don't forget to update the fg field in jobList
+    			// Asked to put in foreground
     			if (newJob.progs[0].argv[0][0] == 'f')
     			{
-//    				if (tcsetpgrp(0, getpid()))
-//    				                        perror("tcsetpgrp");
+    				/* Set as the new foreground job */
+    				jobList->fg = job;
+
+    				/* Give shell context */
+    				if (tcsetpgrp(0, job->pgrp))
+						perror("tcsetpgrp");
     			}
 
     			// Resume running the job
